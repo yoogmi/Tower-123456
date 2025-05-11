@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>성 방어 게임</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
+            font-family: Arial, sans-serif;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 20px auto;
+            border: 3px solid #333;
+            overflow: hidden;
+            background-color: #74c8e3;
+        }
+        
+        #castle {
+            position: absolute;
+            left: 50px;
+            bottom: 100px;
+            width: 150px;
+            height: 200px;
+            background-color: #8B4513;
+            border: 2px solid #333;
+        }
+        
+        #castle-top {
+            position: absolute;
+            top: -20px;
+            width: 150px;
+            height: 20px;
+            background-color: #8B4513;
+            border: 2px solid #333;
+            border-bottom: none;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .castle-merlon {
+            width: 15px;
+            height: 20px;
+            background-color: #8B4513;
+            border-left: 2px solid #333;
+            border-right: 2px solid #333;
+        }
+        
+        #castle-door {
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            width: 30px;
+            height: 50px;
+            background-color: #4d2600;
+            border-top: 2px solid #333;
+        }
+        
+        #castle-window1, #castle-window2 {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #87CEEB;
+            border: 2px solid #333;
+        }
+        
+        #castle-window1 {
+            top: 40px;
+            left: 30px;
+        }
+        
+        #castle-window2 {
+            top: 40px;
+            right: 30px;
+        }
+        
+        #path {
+            position: absolute;
+            left: 200px;
+            bottom: 100px;
+            width: 500px;
+            height: 40px;
+            background-color: #C2B280;
+        }
+        
+        #cave {
+            position: absolute;
+            right: 0;
+            bottom: 100px;
+            width: 100px;
+            height: 80px;
+            background-color: #696969;
+            border-top-left-radius: 80px;
+            border-bottom-left-radius: 40px;
+        }
+        
+        #cave-inner {
+            position: absolute;
+            right: 10px;
+            bottom: 110px;
+            width: 60px;
+            height: 60px;
+            background-color: #000;
+            border-top-left-radius: 60px;
+            border-bottom-left-radius: 30px;
+        }
+        
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #228B22;
+        }
+        
+        .enemy {
+            position: absolute;
+            bottom: 140px;
+            right: 50px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .ant {
+            background-color: #8B4513;
+            border-radius: 50% 50% 0 0;
+        }
+        
+        .spider {
+            background-color: #000;
+            border-radius: 50%;
+        }
+        
+        .moth {
+            background-color: #D3D3D3;
+            border-radius: 15px;
+        }
+        
+        .centipede {
+            background-color: #8B0000;
+            width: 40px;
+            height: 20px;
+            border-radius: 10px;
+        }
+        
+        .player {
+            position: absolute;
+            left: 200px;
+            bottom: 140px;
+            width: 30px;
+            height: 50px;
+            background-color: #1E90FF;
+            border-radius: 50% 50% 0 0;
+            transition: bottom 0.3s;
+        }
+        
+        .health-bar {
+            position: absolute;
+            height: 5px;
+            background-color: green;
+            top: -10px;
+            left: 0;
+        }
+        
+        .poison-effect {
+            box-shadow: 0 0 10px #00FF00;
+        }
+        
+        #controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        #info-panel {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px auto;
+            width: 800px;
+        }
+        
+        .info-box {
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+        
+        #weapon-info {
+            font-size: 16px;
+            margin: 10px;
+            text-align: center;
+        }
+        
+        #reload-bar {
+            width: 100px;
+            height: 10px;
+            background-color: #DDD;
+            margin: 5px auto;
+            border: 1px solid #333;
+            display: none;
+        }
+        
+        #reload-progress {
+            width: 0;
+            height: 100%;
+            background-color: #4CAF50;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 32px;
+        }
+        
+        #game-over button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ground"></div>
+        <div id="castle">
+            <div id="castle-top">
+                <div class="castle-merlon"></div>
+                <div class="castle-merlon"></div>
+                <div class="castle-merlon"></div>
+                <div class="castle-merlon"></div>
+            </div>
+            <div id="castle-door"></div>
+            <div id="castle-window1"></div>
+            <div id="castle-window2"></div>
+        </div>
+        <div id="path"></div>
+        <div id="cave">
+            <div id="cave-inner"></div>
+        </div>
+        <div class="player"></div>
+        <div id="game-over">
+            <div>게임 오버!</div>
+            <div id="final-wave"></div>
+            <button id="restart-btn">다시 시작</button>
+        </div>
+    </div>
+    
+    <div id="info-panel">
+        <div class="info-box">웨이브: <span id="wave">0</span></div>
+        <div class="info-box">플레이어 체력: <span id="player-health">100</span>/100</div>
+        <div class="info-box">성 체력: <span id="castle-health">1234</span>/1234</div>
+    </div>
+    
+    <div id="weapon-info">
+        현재 무기: <span id="current-weapon">총</span>
+        <div id="reload-bar"><div id="reload-progress"></div></div>
+    </div>
+    
+    <div id="controls">
+        <button id="start-btn">게임 시작</button>
+        <button id="gun-btn">총 사용 (E키, 데미지: 2)</button>
+        <button id="sword-btn">칼 사용 (Q키, 데미지: 3)</button>
+        <button id="switch-btn">무기 전환</button>
+        <div style="margin-top: 10px; text-align: center;">
+            이동: A(왼쪽), D(오른쪽), W(점프)
+        </div>
+    </div>
+
+    <script>
+        // 게임 상태 변수
+        let gameRunning = false;
+        let currentWave = 0;
+        let playerHealth = 100;
+        let castleHealth = 1234;
+        let isPoisoned = false;
+        let poisonTime = 0;
+        let currentWeapon = 'gun';
+        let gunAmmo = 3;
+        let isReloading = false;
+        let canUseWeapon = true;
+        let waveTimeout;
+        let centipedeInterval;
+        let poisonInterval;
+        let enemies = [];
+        
+        // 플레이어 움직임 변수
+        let playerPosition = 200;
+        let isJumping = false;
+        let playerBottom = 140;
+        const keys = {
+            a: false,
+            d: false,
+            w: false,
+            q: false,
+            e: false
+        };
+        
+        // DOM 요소
+        const gameContainer = document.getElementById('game-container');
+        const player = document.querySelector('.player');
+        const startBtn = document.getElementById('start-btn');
+        const gunBtn = document.getElementById('gun-btn');
+        const swordBtn = document.getElementById('sword-btn');
+        const switchBtn = document.getElementById('switch-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const waveDisplay = document.getElementById('wave');
+        const playerHealthDisplay = document.getElementById('player-health');
+        const castleHealthDisplay = document.getElementById('castle-health');
+        const currentWeaponDisplay = document.getElementById('current-weapon');
+        const reloadBar = document.getElementById('reload-bar');
+        const reloadProgress = document.getElementById('reload-progress');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalWaveDisplay = document.getElementById('final-wave');
+        
+        // 적 정보
+        const enemyTypes = {
+            ant: { health: 1, damage: 2, color: '#8B4513', class: 'ant', poison: false, points: 1 },
+            spider: { health: 1, damage: 2, color: '#000', class: 'spider', poison: true, points: 2 },
+            moth: { health: 1, damage: 2, color: '#D3D3D3', class: 'moth', poison: false, points: 1 },
+            centipede: { health: 10, damage: 3, color: '#8B0000', class: 'centipede', poison: true, points: 5 }
+        };
+        
+        // 이벤트 리스너
+        startBtn.addEventListener('click', startGame);
+        gunBtn.addEventListener('click', () => useWeapon('gun'));
+        swordBtn.addEventListener('click', () => useWeapon('sword'));
+        switchBtn.addEventListener('click', switchWeapon);
+        restartBtn.addEventListener('click', restartGame);
+        
+        // 키보드 이벤트 리스너
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        
+        // 키보드 입력 처리
+        function handleKeyDown(e) {
+            if (e.key.toLowerCase() in keys) {
+                keys[e.key.toLowerCase()] = true;
+                
+                // 즉시 처리해야 하는 액션
+                if (e.key.toLowerCase() === 'q' && gameRunning) {
+                    useWeapon('sword');
+                } else if (e.key.toLowerCase() === 'e' && gameRunning) {
+                    useWeapon('gun');
+                } else if (e.key.toLowerCase() === 'w' && !isJumping && gameRunning) {
+                    jump();
+                }
+            }
+        }
+        
+        function handleKeyUp(e) {
+            if (e.key.toLowerCase() in keys) {
+                keys[e.key.toLowerCase()] = false;
+            }
+        }
+        
+        // 점프 기능
+        function jump() {
+            if (isJumping) return;
+            
+            isJumping = true;
+            const jumpHeight = 100;
+            const jumpDuration = 500; // 점프 시간(ms)
+            const startTime = Date.now();
+            const startBottom = playerBottom;
+            
+            function updateJump() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / jumpDuration, 1);
+                
+                // 포물선 움직임 (위로 올라갔다 내려오는)
+                const jumpProgress = Math.sin(progress * Math.PI);
+                playerBottom = startBottom + jumpHeight * jumpProgress;
+                player.style.bottom = playerBottom + 'px';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateJump);
+                } else {
+                    playerBottom = startBottom;
+                    player.style.bottom = playerBottom + 'px';
+                    isJumping = false;
+                }
+            }
+            
+            requestAnimationFrame(updateJump);
+        }
+        
+        // 게임 시작
+        function startGame() {
+            if (gameRunning) return;
+            
+            gameRunning = true;
+            startBtn.disabled = true;
+            resetGame();
+            startWave();
+            
+            // 10초마다 지네 생성
+            centipedeInterval = setInterval(spawnCentipede, 10000);
+            
+            // 독 효과 업데이트
+            poisonInterval = setInterval(updatePoison, 2000);
+        }
+        
+        // 게임 리셋
+        function resetGame() {
+            currentWave = 0;
+            playerHealth = 100;
+            castleHealth = 1234;
+            isPoisoned = false;
+            poisonTime = 0;
+            currentWeapon = 'gun';
+            gunAmmo = 3;
+            isReloading = false;
+            canUseWeapon = true;
+            playerPosition = 200;
+            playerBottom = 140;
+            isJumping = false;
+            
+            // 화면 업데이트
+            updateDisplay();
+            currentWeaponDisplay.textContent = '총';
+            reloadBar.style.display = 'none';
+            player.classList.remove('poison-effect');
+            player.style.left = playerPosition + 'px';
+            player.style.bottom = playerBottom + 'px';
+            
+            // 모든 적 제거
+            const existingEnemies = document.querySelectorAll('.enemy');
+            existingEnemies.forEach(enemy => enemy.remove());
+            enemies = [];
+            
+            // 게임오버 화면 숨기기
+            gameOverScreen.style.display = 'none';
+        }
+        
+        // 게임 재시작
+        function restartGame() {
+            resetGame();
+            startGame();
+        }
+        
+        // 웨이브 시작
+        function startWave() {
+            currentWave++;
+            waveDisplay.textContent = currentWave;
+            
+            // 한 웨이브에 3마리씩 각 종류 생성 (지네 제외)
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    spawnEnemy('ant');
+                    spawnEnemy('spider');
+                    spawnEnemy('moth');
+                }, i * 1000);
+            }
+            
+            // 5초 후 다음 웨이브
+            waveTimeout = setTimeout(startWave, 5000);
+        }
+        
+        // 적 생성
+        function spawnEnemy(type) {
+            if (!gameRunning) return;
+            
+            const enemyInfo = enemyTypes[type];
+            const enemy = document.createElement('div');
+            enemy.className = `enemy ${enemyInfo.class}`;
+            enemy.innerHTML = type === 'centipede' ? '10' : '1';
+            
+            // 체력바 생성
+            const healthBar = document.createElement('div');
+            healthBar.className = 'health-bar';
+            healthBar.style.width = '100%';
+            enemy.appendChild(healthBar);
+            
+            // 적 초기 위치
+            const startPosition = 50;
+            enemy.style.right = startPosition + 'px';
+            
+            // 적 데이터
+            const enemyData = {
+                element: enemy,
+                type: type,
+                health: enemyInfo.health,
+                maxHealth: enemyInfo.health,
+                position: startPosition,
+                isDead: false
+            };
+            
+            enemies.push(enemyData);
+            gameContainer.appendChild(enemy);
+            
+            // 적 이동 시작
+            moveEnemy(enemyData);
+        }
+        
+        // 지네 생성
+        function spawnCentipede() {
+            if (gameRunning) {
+                spawnEnemy('centipede');
+            }
+        }
+        
+        // 적 이동
+        function moveEnemy(enemyData) {
+            if (!gameRunning || enemyData.isDead) return;
+            
+            const moveSpeed = enemyData.type === 'centipede' ? 1 : 2;
+            
+            enemyData.position += moveSpeed;
+            enemyData.element.style.right = (50 + enemyData.position) + 'px';
+            
+            // 성에 도달했는지 확인
+            if (enemyData.position >= 600) {
+                // 성에 데미지
+                const damage = enemyTypes[enemyData.type].damage;
+                castleHealth -= damage;
+                updateDisplay();
+                
+                // 적 제거
+                enemyData.element.remove();
+                enemyData.isDead = true;
+                
+                // 게임 오버 체크
+                checkGameOver();
+            } else {
+                // 플레이어와 충돌 확인
+                const playerRect = player.getBoundingClientRect();
+                const enemyRect = enemyData.element.getBoundingClientRect();
+                
+                if (isColliding(playerRect, enemyRect)) {
+                    // 플레이어에게 데미지
+                    takeDamage(enemyData.type);
+                    
+                    // 적 제거
+                    enemyData.element.remove();
+                    enemyData.isDead = true;
+                } else {
+                    // 계속 이동
+                    requestAnimationFrame(() => moveEnemy(enemyData));
+                }
+            }
+        }
+        
+        // 충돌 감지
+        function isColliding(rect1, rect2) {
+            return rect1.right > rect2.left &&
+                   rect1.left < rect2.right &&
+                   rect1.bottom > rect2.top &&
+                   rect1.top < rect2.bottom;
+        }
+        
+        // 데미지 입음
+        function takeDamage(enemyType) {
+            const damage = enemyTypes[enemyType].damage;
+            playerHealth -= damage;
+            
+            // 독 효과
+            if (enemyTypes[enemyType].poison && !isPoisoned) {
+                isPoisoned = true;
+                poisonTime = 10;
+                player.classList.add('poison-effect');
+            }
+            
+            updateDisplay();
+            checkGameOver();
+        }
+        
+        // 독 효과 업데이트
+        function updatePoison() {
+            if (isPoisoned && gameRunning) {
+                playerHealth -= 1;
+                updateDisplay();
+                
+                poisonTime -= 2;
+                if (poisonTime <= 0) {
+                    isPoisoned = false;
+                    player.classList.remove('poison-effect');
+                }
+                
+                checkGameOver();
+            }
+        }
+        
+        // 무기 사용
+        function useWeapon(weapon) {
+            if (!gameRunning || !canUseWeapon) return;
+            
+            if (weapon === 'gun') {
+                if (gunAmmo <= 0) {
+                    reloadGun();
+                    return;
+                }
+                
+                // 총 사용
+                attackWithGun();
+                gunAmmo--;
+                
+                if (gunAmmo <= 0) {
+                    reloadGun();
+                }
+            } else if (weapon === 'sword') {
+                // 칼 사용
+                attackWithSword();
+                
+                // 1초 쿨다운
+                canUseWeapon = false;
+                setTimeout(() => {
+                    canUseWeapon = true;
+                }, 1000);
+            }
+        }
+        
+        // 총으로 공격
+        function attackWithGun() {
+            // 가장 가까운 적 찾기
+            const target = findClosestEnemy();
+            if (target) {
+                damageEnemy(target, 2);
+            }
+        }
+        
+        // 칼로 공격
+        function attackWithSword() {
+            // 플레이어 주변의 적 찾기
+            const playerRect = player.getBoundingClientRect();
+            const range = 50; // 칼의 범위
+            
+            enemies.forEach(enemy => {
+                if (!enemy.isDead) {
+                    const enemyRect = enemy.element.getBoundingClientRect();
+                    const distance = Math.sqrt(
+                        Math.pow(playerRect.x - enemyRect.x, 2) + 
+                        Math.pow(playerRect.y - enemyRect.y, 2)
+                    );
+                    
+                    if (distance < range) {
+                        damageEnemy(enemy, 3);
+                    }
+                }
+            });
+        }
+        
+        // 가장 가까운 적 찾기
+        function findClosestEnemy() {
+            let closest = null;
+            let closestDistance = Infinity;
+            
+            enemies.forEach(enemy => {
+                if (!enemy.isDead) {
+                    // 적의 위치 (오른쪽에서부터의 거리)
+                    const distance = enemy.position;
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closest = enemy;
+                    }
+                }
+            });
+            
+            return closest;
+        }
+        
+        // 적에게 데미지
+        function damageEnemy(enemy, damage) {
+            enemy.health -= damage;
+            
+            // 체력바 업데이트
+            const healthPercent = (enemy.health / enemy.maxHealth) * 100;
+            const healthBar = enemy.element.querySelector('.health-bar');
+            healthBar.style.width = healthPercent + '%';
+            healthBar.style.backgroundColor = healthPercent > 50 ? 'green' : 'red';
+            
+            // 체력 표시 업데이트
+            enemy.element.innerHTML = enemy.health;
+            enemy.element.appendChild(healthBar);
+            
+            // 적 제거
+            if (enemy.health <= 0) {
+                enemy.element.remove();
+                enemy.isDead = true;
+            }
+        }
+        
+        // 총 재장전
+        function reloadGun() {
+            if (isReloading) return;
+            
+            isReloading = true;
+            reloadBar.style.display = 'block';
+            
+            // 재장전 진행 애니메이션
+            let progress = 0;
+            const reloadTime = 2000; // 2초
+            const interval = 50; // 50ms마다 업데이트
+            const step = interval / reloadTime * 100;
+            
+            const reloadInterval = setInterval(() => {
+                progress += step;
+                reloadProgress.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(reloadInterval);
+                    gunAmmo = 3;
+                    isReloading = false;
+                    reloadBar.style.display = 'none';
+                }
+            }, interval);
+        }
+        
+        // 무기 전환
+        function switchWeapon() {
+            if (currentWeapon === 'gun') {
+                currentWeapon = 'sword';
+                currentWeaponDisplay.textContent = '칼';
+                reloadBar.style.display = 'none';
+            } else {
+                currentWeapon = 'gun';
+                currentWeaponDisplay.textContent = '총';
+                if (isReloading) {
+                    reloadBar.style.display = 'block';
+                }
+            }
+        }
+        
+        // 게임 오버 체크
+        function checkGameOver() {
+            if (castleHealth <= 0) {
+                endGame("성이 파괴되었습니다!");
+            } else if (playerHealth <= 0) {
+                endGame("플레이어가 사망했습니다!");
+            }
+        }
+        
+        // 게임 종료
+        function endGame(reason) {
+            gameRunning = false;
+            
+            // 인터벌 정리
+            clearTimeout(waveTimeout);
+            clearInterval(centipedeInterval);
+            clearInterval(poisonInterval);
+            
+            // 게임 오버 화면 표시
+            gameOverScreen.style.display = 'flex';
+            finalWaveDisplay.textContent = `최종 웨이브: ${currentWave}`;
+            
+            // 시작 버튼 활성화
+            startBtn.disabled = false;
+        }
+        
+        // 표시 업데이트
+        function updateDisplay() {
+            waveDisplay.textContent = currentWave;
+            playerHealthDisplay.textContent = Math.max(0, playerHealth);
+            castleHealthDisplay.textContent = Math.max(0, castleHealth);
+        }
+        
+        // 게임 루프 설정
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayerPosition();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 플레이어 위치 업데이트 (키보드 조작)
+        function updatePlayerPosition() {
+            const speed = 5;
+            
+            // A키 - 왼쪽 이동
+            if (keys.a) {
+                playerPosition -= speed;
+            }
+            
+            // D키 - 오른쪽 이동
+            if (keys.d) {
+                playerPosition += speed;
+            }
+            
+            // 플레이어 위치 제한 (성과 동굴 사이)
+            playerPosition = Math.max(200, Math.min(700, playerPosition));
+            player.style.left = playerPosition + 'px';
+        }
+        
+        // 게임 루프 시작
+        gameLoop();
+    </script>
+</body>
+</html>
